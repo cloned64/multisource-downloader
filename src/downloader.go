@@ -5,8 +5,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"os"
 	"sync"
+	"github.com/schollz/progressbar/v3"
 )
 
 func DownloadRoutine(inputChan chan Chunk, outputChan chan Chunk, retryChan chan Chunk, url string) {
@@ -30,6 +32,22 @@ func Retryer(retryChan chan Chunk, downloadChan chan Chunk) {
 
 }
 
+
+func ChunkWriter(chunkChannel chan Chunk, retryChan chan Chunk, done *sync.WaitGroup, bar *progressbar.ProgressBar,file *os.File) {
+
+	for chu := range chunkChannel {
+		err := WriteChunk(file, chu)
+		if err != nil {
+			retryChan <- chu
+		} else {
+			chu.Complete = true
+			bar.Add(1)
+			done.Done()
+		}
+	}
+}
+
+
 func Runner(urls []string, settings Settings) (string, error) {
 	if urls == nil || len(urls) < 1 {
 		return "", fmt.Errorf("Source urls not present")
@@ -43,15 +61,17 @@ func Runner(urls []string, settings Settings) (string, error) {
 
 	chunkMeta := MakeChunks(fileDesc, settings)
 
+	log.Println("CHUNKS")
+
 	// create channels
 	size := len(chunkMeta)
-
 	downloadChan := make(chan Chunk, size)
 	writingChan := make(chan Chunk, size)
 	retryChan := make(chan Chunk, size)
+
+	// setup the waitgroup
 	var done sync.WaitGroup
 	done.Add(len(chunkMeta))
-	// done := make(chan bool)
 
 	//create writer goroutine
 	filePath := fmt.Sprintf("%s/%s", settings.OutputPath, fileDesc.Filename)
@@ -60,12 +80,11 @@ func Runner(urls []string, settings Settings) (string, error) {
 		return "", err
 	}
 	defer file.Close()
+	bar := progressbar.Default(int64(len(chunkMeta)), "downloading")
+	// bar := progressbar.Default(fileDesc.Size, "downloading")
 
 	go Retryer(retryChan, downloadChan)
-
-	for i := 0; i < 10; i++ {
-		go ChunkWriter(writingChan, retryChan, &done, file)
-	}
+	go ChunkWriter(writingChan, retryChan, &done, bar, file)
 
 	// create downloader goroutines
 	for n := 0; n < settings.MaxWorkers; n++ {
@@ -73,13 +92,14 @@ func Runner(urls []string, settings Settings) (string, error) {
 
 	}
 
-	// put chunks onto
+	// put chunks onto channel to download
 	for _, chunk := range chunkMeta {
 		downloadChan <- chunk
 	}
 	// wait for progress checker to say it it done
+
 	done.Wait()
-	fmt.Println("File is done!")
+	Echo("File is done!")
 
 	return filePath, nil
 }

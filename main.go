@@ -4,47 +4,35 @@ import (
 	"fmt"
 	dl "ms_downloader/src"
 	"time"
-	
+	"os"
+	"log"
+	"github.com/akamensky/argparse"
+
 )
 
-// type FileInfo struct {
-// 	filename string
-// 	size int64
-// }
 
 func main() {
 
-	fmt.Println("Hello, 世界")
-	url_ := "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-desktop-amd64.iso"
-	// url_ := "https://mega.nz/linux/repo/xUbuntu_23.04/amd64/megasync-xUbuntu_23.04_amd64.deb"
+    logfile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
+    if err != nil {
+        log.Fatal(err)
+    }
 
-	fucker, err := dl.GetHeader(url_)
-	fmt.Println(fucker)
-	fmt.Println(err)
+    log.SetOutput(logfile)
 
-	// testChunk := dl.Chunk{Start: 0, Length: 1024, Index: 0}
-
-	// chunk, err := dl.DownloadChunk(url_, testChunk)
-	// fmt.Println(err)
-	// fmt.Print(chunk.Data)
-	// fmt.Println(chunk)
-
-
-	s_ := dl.Settings{
-		Retries: 10,
-		ChunkSize: 1024*1024,
-		MaxWorkers: 100,
-		OutputPath: "output" }
-
+	// url_ := "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-desktop-amd64.iso"
+	// url_ := "https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz"
+	// os.Args = append(os.Args, "https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz")
+	settings, url_ := Args()
 	urls := make([]string, 1)
 	urls[0] = url_
-	
+
 	start := time.Now()
-	filePath, err := dl.Runner(urls, s_)
+	filePath, err := dl.Runner(urls, settings)
 	
 	if err != nil {
-		fmt.Println(err)
-		fmt.Println("File could not be downloaded")
+		dl.Echo(err)
+		dl.Echo("File could not be downloaded")
 	}
 
 	duration := time.Since(start)
@@ -53,8 +41,43 @@ func main() {
 	hash, err := dl.Hash_file_md5(filePath)
 	if err != nil {
 		fmt.Println(err)
-		fmt.Println("MD5 Hash sould not be calculated")
+		fmt.Println("MD5 Hash could not be calculated")
 	}
 	fmt.Printf("MD5 hash: \n\r\t%v", hash)
 
+}
+
+
+func Args() (dl.Settings, string){
+	parser := argparse.NewParser("file downloader", "Downloads a file from multiple sources")
+
+		Retries:= parser.Int("r", "retries", 
+					&argparse.Options{Required: false, Help:"Number of retries before giving up", Default: 10})
+		ChunkSize:= parser.Int("c", "chunk-size", 
+					&argparse.Options{Required: false, Help:"Chunk size in bytes", Default: 1024*1024})
+		MaxWorkers:= parser.Int("t", "threads", 
+					&argparse.Options{Required: false, Help:"Number of threads to use", Default: 100})
+		OutputPath:= parser.String("o", "output", 
+					&argparse.Options{Required: false, Help:"Folder to save file", Default: "output"})
+
+	fmt.Println(os.Args)
+
+	filename := parser.String("f", "filename", 
+		&argparse.Options{Required: false, Help:"Folder to save file", Default: "https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz"})
+
+	err := parser.Parse(os.Args)
+	if err != nil {
+		// In case of error print error and print usage
+		// This can also be done by passing -h or --help flags
+		fmt.Print(parser.Usage(err))
+	}
+
+	var s_ = dl.Settings{
+		Retries: *Retries,
+		ChunkSize: *ChunkSize,
+		MaxWorkers: *MaxWorkers,
+		OutputPath: *OutputPath,
+	}
+
+	return s_, *filename
 }

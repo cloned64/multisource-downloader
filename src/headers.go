@@ -14,7 +14,7 @@ func onError(err error) (File, error) {
 func checkHeaderValue(header http.Header, key string) (string, error) {
 	value, ok := header[key]
 	if ok {
-		fmt.Printf("%v = %v\n", key, value[0])
+		Echo(fmt.Sprintf("%v = %v", key, value[0]))
 		return value[0], nil
 	} else {
 		return "", fmt.Errorf("%v not present", key)
@@ -23,7 +23,7 @@ func checkHeaderValue(header http.Header, key string) (string, error) {
 
 func GetHeader(url string) (File, error) {
 
-	fmt.Println("fetching headers for url")
+	Echo("fetching headers for url")
 	req, err := http.NewRequest("HEAD", url, nil)
 
 	if err != nil {
@@ -62,11 +62,11 @@ func GetHeader(url string) (File, error) {
 
 	etag, err := checkHeaderValue(res.Header, "Etag")
 	if err != nil {
-		fmt.Println("ETag not found, validation will not be possible")
+		Echo("ETag not found, validation will not be possible")
 	}
 
 	filename := path.Base(req.URL.Path)
-	fmt.Println(filename)
+	Echo(filename)
 
 	return File{Size: fileSize, Filename: filename, Etag: etag}, nil
 

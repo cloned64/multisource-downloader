@@ -5,7 +5,8 @@ import (
 	"io"
 	"net/http"
 	"os"
-	"sync"
+
+	"log"
 )
 
 func MakeChunks(f File, config Settings) []Chunk {
@@ -33,11 +34,11 @@ func MakeChunks(f File, config Settings) []Chunk {
 func DownloadChunk(url string, info *Chunk) (error) {
 
 	end := info.Start + info.Length - 1
-	fmt.Println(fmt.Sprintf("fetching segment (%d, %d) for url %s", info.Start, end, url))
+	log.Println(fmt.Sprintf("fetching segment (%d, %d) for url %s", info.Start, end, url))
 	req, err := http.NewRequest("GET", url, nil)
 	req.Header.Set("Range", fmt.Sprintf("bytes=%d-%d", info.Start, end))
 
-	fmt.Println(req.Header)
+	log.Println(req.Header)
 
 	if err != nil {
 		return err
@@ -60,7 +61,7 @@ func DownloadChunk(url string, info *Chunk) (error) {
 
 	info.Data = body
 
-	fmt.Printf("Got Chunk %v\n\r", info.Index)
+	log.Printf("Got Chunk %v\n\r", info.Index)
 
 	return nil
 }
@@ -71,17 +72,4 @@ func WriteChunk(file *os.File, chunk Chunk) error {
 	return err
 }
 
-func ChunkWriter(chunkChannel chan Chunk, retryChan chan Chunk, done *sync.WaitGroup, file *os.File) {
-
-	for chu := range chunkChannel {
-		err := WriteChunk(file, chu)
-		if err != nil {
-			retryChan <- chu
-		} else {
-			chu.Complete = true
-			done.Done()
-		}
-	}
-
-}
 
