@@ -5,14 +5,13 @@ import (
 	"net/http"
 	"path"
 	"strconv"
-
 )
 
-func onError(err error)(FileConfig, error){
-	return FileConfig{}, err
+func onError(err error) (File, error) {
+	return File{}, err
 }
 
-func checkHeaderValue(header http.Header, key string) (string, error){
+func checkHeaderValue(header http.Header, key string) (string, error) {
 	value, ok := header[key]
 	if ok {
 		fmt.Printf("%v = %v\n", key, value[0])
@@ -22,8 +21,7 @@ func checkHeaderValue(header http.Header, key string) (string, error){
 	}
 }
 
-
-func GetHeader(url string) (FileConfig, error) {
+func GetHeader(url string) (File, error) {
 
 	fmt.Println("fetching headers for url")
 	req, err := http.NewRequest("HEAD", url, nil)
@@ -42,14 +40,14 @@ func GetHeader(url string) (FileConfig, error) {
 	if res.StatusCode != 200 {
 		return onError(fmt.Errorf("Error code %v received, invalid target url", res.StatusCode))
 	}
-	
+
 	// checking for required header values
 	fileSizeStr, err := checkHeaderValue(res.Header, "Content-Length")
 	if err != nil {
 		return onError(err)
 	}
 
-	fileSize, err :=strconv.ParseInt(fileSizeStr, 0, 64)
+	fileSize, err := strconv.ParseInt(fileSizeStr, 0, 64)
 	if err != nil {
 		return onError(err)
 	}
@@ -70,6 +68,6 @@ func GetHeader(url string) (FileConfig, error) {
 	filename := path.Base(req.URL.Path)
 	fmt.Println(filename)
 
-	return FileConfig{Size: fileSize, Filename: filename, Etag: etag}, nil
+	return File{Size: fileSize, Filename: filename, Etag: etag}, nil
 
 }
