@@ -54,7 +54,7 @@ func Args() (dl.Settings, string) {
 	parser := argparse.NewParser("file downloader", "Downloads a file from multiple sources")
 
 	Retries := parser.Int("r", "retries",
-		&argparse.Options{Required: false, Help: "Number of retries before giving up", Default: 10})
+		&argparse.Options{Required: false, Help: "Not implemented but, the number of retries before giving up", Default: 10})
 	ChunkSize := parser.Int("c", "chunk-size",
 		&argparse.Options{Required: false, Help: "Chunk size in bytes", Default: 1024 * 1024})
 	MaxWorkers := parser.Int("t", "threads",
@@ -64,8 +64,8 @@ func Args() (dl.Settings, string) {
 
 	fmt.Println(os.Args)
 
-	filename := parser.String("f", "filename",
-		&argparse.Options{Required: false, Help: "Folder to save file", Default: "https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz"})
+	url := parser.String("u", "url",
+		&argparse.Options{Required: true, Help: "url to download"})
 	// filename := parser.String("f", "filename",
 	// 	&argparse.Options{Required: false, Help: "Folder to save file", Default: "https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-desktop-amd64.iso"})
 
@@ -74,6 +74,7 @@ func Args() (dl.Settings, string) {
 		// In case of error print error and print usage
 		// This can also be done by passing -h or --help flags
 		fmt.Print(parser.Usage(err))
+		os.Exit(0)
 	}
 
 	var s_ = dl.Settings{
@@ -83,5 +84,5 @@ func Args() (dl.Settings, string) {
 		OutputPath: *OutputPath,
 	}
 
-	return s_, *filename
+	return s_, *url
 }
