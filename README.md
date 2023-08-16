@@ -46,3 +46,4 @@ Arguments:
 4. the temp folder and Settings.Resume were intended to added the ability to resume a download if interrupted
 5. Would have liked to give the program a hash to verify the download automatically
 6. Read settings from file sort of like a torrent file
+7. Add some unit tests, particularly for generating the file descriptor and chunks
