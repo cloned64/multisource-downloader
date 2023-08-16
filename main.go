@@ -12,6 +12,7 @@ import (
 
 func main() {
 
+	// Setup logger
 	logfile, err := os.OpenFile("logs.txt", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
 		log.Fatal(err)
@@ -19,10 +20,12 @@ func main() {
 
 	log.SetOutput(logfile)
 
+	// Parse args
 	settings, url_ := Args()
 	urls := make([]string, 1)
 	urls[0] = url_
 
+	// Run the actual downloader
 	start := time.Now()
 	filePath, err := dl.Runner(urls, settings)
 
@@ -34,6 +37,7 @@ func main() {
 	duration := time.Since(start)
 	fmt.Printf("Download Time: %v\n", duration)
 
+	// Output hashes for accuracy checking
 	hash, err := dl.Hash_file_md5(filePath)
 	if err != nil {
 		fmt.Println(err)

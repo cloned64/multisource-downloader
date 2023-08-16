@@ -10,6 +10,7 @@ import (
 	"os"
 )
 
+// This should probably just be an io.MultiWriter object but I didn't know about that  until after I wrote most of the code
 func Echo(msg any) {
 	log.Println(msg)
 	fmt.Println(msg)

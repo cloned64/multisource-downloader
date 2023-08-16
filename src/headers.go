@@ -23,7 +23,7 @@ func checkHeaderValue(header http.Header, key string) (string, error) {
 
 func GetHeader(url string) (File, error) {
 
-	Echo("fetching headers for url")
+	Echo("Fetching headers for url")
 	req, err := http.NewRequest("HEAD", url, nil)
 
 	if err != nil {

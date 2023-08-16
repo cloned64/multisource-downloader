@@ -36,6 +36,7 @@ func ChunkWriter(chunkChannel chan Chunk, retryChan chan Chunk, done *sync.WaitG
 		if err != nil {
 			retryChan <- chu
 		} else {
+			// this updates the status of the chunk, bar, and the waitgroup
 			chu.Complete = true
 			bar.Add(1)
 			done.Done()
@@ -66,7 +67,7 @@ func Runner(urls []string, settings Settings) (string, error) {
 	var done sync.WaitGroup
 	done.Add(len(chunkMeta))
 
-	//create writer goroutine
+	// create file
 	filePath := fmt.Sprintf("%s/%s", settings.OutputPath, fileDesc.Filename)
 	file, err := os.Create(filePath)
 	if err != nil {
@@ -75,6 +76,7 @@ func Runner(urls []string, settings Settings) (string, error) {
 	defer file.Close()
 	bar := progressbar.Default(int64(len(chunkMeta)), "downloading")
 
+	// create goroutines
 	go Retryer(retryChan, downloadChan)
 	go ChunkWriter(writingChan, retryChan, &done, bar, file)
 
