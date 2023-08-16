@@ -3,10 +3,9 @@ package ms_downloader
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
-
-	"log"
 )
 
 func MakeChunks(f File, config Settings) []Chunk {
@@ -31,7 +30,7 @@ func MakeChunks(f File, config Settings) []Chunk {
 }
 
 // grabs a chunk from a url
-func DownloadChunk(url string, info *Chunk) (error) {
+func DownloadChunk(url string, info *Chunk) error {
 
 	end := info.Start + info.Length - 1
 	log.Println(fmt.Sprintf("fetching segment (%d, %d) for url %s", info.Start, end, url))
@@ -61,7 +60,7 @@ func DownloadChunk(url string, info *Chunk) (error) {
 
 	info.Data = body
 
-	log.Printf("Got Chunk %v\n\r", info.Index)
+	log.Printf("Got Chunk %v", info.Index)
 
 	return nil
 }
@@ -71,5 +70,3 @@ func WriteChunk(file *os.File, chunk Chunk) error {
 	_, err := file.WriteAt(chunk.Data, chunk.Start)
 	return err
 }
-
-
