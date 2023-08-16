@@ -32,12 +32,15 @@ Arguments:
 * Recent Ubuntu release
     * 4.7 Gb
     * https://releases.ubuntu.com/22.04.3/ubuntu-22.04.3-desktop-amd64.iso
+    * SHA256: a435f6f393dda581172490eda9f683c32e495158a780b5a1de422ee77d98e909
 * Python 3.11.4
     * 26 Mb
     * https://www.python.org/ftp/python/3.11.4/Python-3.11.4.tgz
+    * MD5: bf6ec50f2f3bfa6ffbdb385286f2c628
 * Go 1.21.0 for Linux 2.6.32 or later
     * 63 Mb
     * https://go.dev/dl/go1.21.0.linux-amd64.tar.gz
+    * SHA256: d0398903a16ba2232b389fb31032ddf57cac34efda306a0eebac34f0965a0742
 
 ## Notes to improve ##
 1. To make it truly multisource add a descriptor file or an arguement that takes an list of urls
